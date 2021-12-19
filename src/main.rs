@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, VecDeque},
-    thread::{JoinHandle, sleep}, time::Duration,
+    thread::{sleep, JoinHandle},
+    time::Duration,
 };
 
 use crossbeam::channel::*;
@@ -118,9 +119,7 @@ pub fn main() {
         sleep(Duration::from_secs(2));
         println!("world")
     });
-    pool.submit(move || {
-        println!("hello")
-    });
+    pool.submit(move || println!("hello"));
 
     sleep(Duration::from_secs(3));
     pool.shutdown(true);
@@ -137,16 +136,14 @@ impl WorkerThread {
     fn new(id: u16, tx_status: Sender<WorkerThreadStatus>) -> Self {
         let (tx_task, rx) = crossbeam::channel::unbounded::<Task>();
         let tx_status_clone = tx_status.clone();
-        let thread = std::thread::spawn(move || {
-            let tx_status = tx_status_clone;
-            loop {
-                match rx.recv() {
-                    Ok(task) => {
-                        task.execute();
-                        tx_status.send(WorkerThreadStatus::Complete(id));
-                    }
-                    Err(_) => break
+
+        let thread = std::thread::spawn(move || loop {
+            match rx.recv() {
+                Ok(task) => {
+                    task.execute();
+                    tx_status_clone.send(WorkerThreadStatus::Complete(id));
                 }
+                Err(_) => break,
             }
         });
 
@@ -170,7 +167,5 @@ mod test {
     use super::*;
 
     #[test]
-    fn submit_task() {
-
-    }
+    fn submit_task() {}
 }
