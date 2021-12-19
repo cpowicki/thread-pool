@@ -107,22 +107,18 @@ impl BoundedThreadPoolManager {
                     .expect(&format!("thread id {} not found in pool", worker));
                 thread.queue_task(task);
             }
-            None => todo!(),
+            None => self.task_queue.push_back(task),
         }
     }
 }
 
 pub fn main() {
-    let pool = BoundedThreadPool::new(4);
+    let pool = BoundedThreadPool::new(1);
 
-    pool.submit(move || {
-        sleep(Duration::from_secs(2));
-        println!("world")
-    });
+    pool.submit(move || loop {});
     pool.submit(move || println!("hello"));
 
-    sleep(Duration::from_secs(3));
-    pool.shutdown(true);
+    loop {}
 }
 
 struct WorkerThread {
@@ -162,9 +158,6 @@ impl WorkerThread {
 
 #[cfg(test)]
 mod test {
-    use std::{thread::sleep, time::Duration};
-
-    use super::*;
 
     #[test]
     fn submit_task() {}
