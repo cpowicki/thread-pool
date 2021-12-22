@@ -11,7 +11,7 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn execute(self) {
+    pub fn execute(&self) {
         (self.op)();
     }
 }
