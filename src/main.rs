@@ -93,7 +93,10 @@ impl BoundedThreadPoolManager {
                     }
                     Err(_) => todo!(),
                 },
-                default => if let Some(task) = self.task_queue.pop_front() { self.submit(task); }
+                default => if self.ready.len() > 0 && self.task_queue.len() > 0 {
+                    let task = self.task_queue.pop_front().expect("task queue should not be empty");
+                    self.submit(task);
+                }
             }
         })
     }
@@ -115,7 +118,7 @@ impl BoundedThreadPoolManager {
 pub fn main() {
     let pool = BoundedThreadPool::new(1);
 
-    pool.submit(move || loop {});
+    pool.submit(move || sleep(Duration::from_secs(3)));
     pool.submit(move || println!("hello"));
 
     loop {}
@@ -139,7 +142,7 @@ impl WorkerThread {
                     task.execute();
                     tx_status_clone.send(WorkerThreadStatus::Complete(id));
                 }
-                Err(_) => break,
+                Err(_) => todo!(),
             }
         });
 
